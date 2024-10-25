@@ -28,6 +28,7 @@ import glob
 import os
 import distutils.util
 import warnings
+from pathlib import Path
 
 # TODO
 # * allow to use external activity or speech music segmentations
@@ -51,6 +52,7 @@ parser.add_argument('-g', '--detect_gender', choices = ['true', 'false'], defaul
 parser.add_argument('-b', '--ffmpeg_binary', default='ffmpeg', help='Your custom binary of ffmpeg', required=False)
 parser.add_argument('-e', '--export_format', choices = ['csv', 'textgrid'], default='csv', help="(default: 'csv'). If set to 'csv', result will be exported in csv. If set to 'textgrid', results will be exported to praat Textgrid")
 parser.add_argument('-r', '--energy_ratio', default=0.03, type=float, help="(default: 0.03). Energetic threshold used to detect activity (percentage of mean energy of the signal)")
+parser.add_argument('--output_add_basename_dir', action='store_true', help='If set, will add the basename of each input file to the output files.')
 
 args = parser.parse_args()
 
@@ -75,7 +77,14 @@ seg = Segmenter(vad_engine=args.vad_engine, detect_gender=detect_gender, ffmpeg=
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
-    base = [os.path.splitext(os.path.basename(e))[0] for e in input_files]
-    output_files = [os.path.join(odir, e + '.' + args.export_format) for e in base]
+    output_files = []
+    for e in input_files:
+        path = Path(e)
+        if args.output_add_basename_dir:
+            o = os.path.join(odir, path.parent.name, path.stem + '.' + args.export_format)
+        else:
+            o = os.path.join(odir, path.stem + '.' + args.export_format)
+        output_files.append(o)
+    print(input_files, output_files)
     seg.batch_process(input_files, output_files, verbose=True, output_format=args.export_format)
 
