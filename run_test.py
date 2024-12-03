@@ -79,6 +79,10 @@ class TestInaSpeechSegmenter(unittest.TestCase):
             self.assertEqual(curstop, nextstart,
                              '%s VS %s' % (seg2str(i, ret[i]), seg2str(i+1, ret[i+1])))
 
+    def test_boundaries_noffmpeg(self):
+        def seg2str(iseg, tseg):
+            label, start, stop  = tseg
+            return 'seg %d <%s, %f, %f>' % (iseg, label, start, stop)
         seg = Segmenter(ffmpeg=None)
         ret = seg('./media/musanmix.wav')
         for i in range(len(ret) -1):
@@ -96,6 +100,7 @@ class TestInaSpeechSegmenter(unittest.TestCase):
         np.testing.assert_almost_equal([e[1] for e in ref], [e[1] for e in ret])
         np.testing.assert_almost_equal([e[2] for e in ref], [e[2] for e in ret])
 
+    def test_processingresult_noffmpeg(self):
         seg = Segmenter(vad_engine='sm', ffmpeg=None)
         ret = seg('./media/musanmix.wav')
         df = pd.read_csv('./media/musanmix-sm-gender.csv', sep='\t')
@@ -112,6 +117,7 @@ class TestInaSpeechSegmenter(unittest.TestCase):
             self.assertTrue(filecmp.cmp(lout[0], lout[1]))
             self.assertTrue(filecmp.cmp(lout[0], './media/musanmix-sm-gender.csv'))
 
+    def test_batch_noffmpeg(self):
         seg = Segmenter(vad_engine='sm', ffmpeg=None)
         with tempfile.TemporaryDirectory() as tmpdirname:
             lout = [os.path.join(tmpdirname, '1.1.csv'), os.path.join(tmpdirname, '2.1.csv')]
